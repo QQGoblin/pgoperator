@@ -15,3 +15,4 @@ deepcopy: tools
 
 ## 生成 Clientset
 clientset: tools
+	./hack/generate_clientset.sh
