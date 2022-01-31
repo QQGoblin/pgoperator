@@ -16,6 +16,7 @@ import (
 	"pgoperator/pkg/informers"
 	"pgoperator/pkg/simple/client/k8s"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
@@ -97,7 +98,11 @@ func run(mgrConfig *options.Config, ctx context.Context) error {
 	ctrl.SetLogger(klogr.New())
 
 	// 通过 controller-runtime 提供的接口创建 controller manager
-	mgrOptions := manager.Options{}
+	mgrOptions := manager.Options{
+		HealthProbeBindAddress: ":8118",
+		LeaderElection:         true,
+		LeaderElectionID:       "cb659ce9.rccp.patroni.controller",
+	}
 	mgr, err := manager.New(k8sClient.Config(), mgrOptions)
 	if err != nil {
 		klog.Fatalf("unable to set up overall controller manager: %v", err)
@@ -112,11 +117,19 @@ func run(mgrConfig *options.Config, ctx context.Context) error {
 	metav1.AddToGroupVersion(mgr.GetScheme(), metav1.SchemeGroupVersion)
 
 	// 注册controller
-	if err = addControllers(mgr, k8sClient, mgrConfig, informerFactory, mgrConfig.KubernetesOptions); err != nil {
+	if err = addControllers(mgr, k8sClient, informerFactory, mgrConfig); err != nil {
 		klog.Fatalf("unable to register controllers to the manager: %v", err)
 	}
 
-	klog.V(0).Info("Starting cache resource from op-apiserver...")
+	// 添加健康检查和ready
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		klog.Fatalf("unable to set up health check: %v", err)
+	}
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+		klog.Fatalf("unable to set up ready check: %v", err)
+	}
+
+	klog.V(0).Info("Starting cache resource from kube-apiserver...")
 	informerFactory.Start(ctx.Done())
 
 	klog.V(0).Info("Starting the controllers.")
