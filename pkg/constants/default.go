@@ -1,6 +1,9 @@
 package constants
 
 var (
-	// DefaultConfigurationName is the default name of configuration
-	DefaultConfigurationName = "/manager.yaml"
+	// DefaultConfigurationName 默认配置文件
+	DefaultConfigurationName = "/controller-manager.yaml"
+
+	// ControllerNamespaceEnvironment controller 安装的命名空间
+	ControllerNamespaceEnvironment = "CONTROLLER_NAMESPACE"
 )

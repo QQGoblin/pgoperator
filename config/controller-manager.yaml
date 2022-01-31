@@ -1,0 +1,2 @@
+kubernetes:
+  kubeconfig: "/etc/kubernetes/admin.conf"
