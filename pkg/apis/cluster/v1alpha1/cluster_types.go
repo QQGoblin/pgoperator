@@ -18,13 +18,20 @@ const (
 type PatroniCluster struct {
 	metav1.TypeMeta      `json:",inline"`
 	metav1.ObjectMeta    `json:"metadata,omitempty"`
-	PatroniClusterSpec   PatroniClusterStatus `json:"spec"`
+	PatroniClusterSpec   PatroniClusterSpec   `json:"spec"`
 	PatroniClusterStatus PatroniClusterStatus `json:"status,omitempty"`
 }
 
 type PatroniClusterSpec struct {
-	NodeList []string `json:"nodeList"`
-	Image    string   `json:"image"`
+	NodeList               []string `json:"nodeList"`
+	Image                  string   `json:"image"`
+	ServiceAccount         string   `json:"serviceAccount,omitempty"`
+	RequirePodAntiAffinity bool     `json:"requirePodAntiAffinity,omitempty"`
+	// TODO: 用户password可配置
+	SuperUserName             string `json:"superUserName,omitempty"`
+	SuperUserSecretName       string `json:"superUserSecretName,omitempty"`
+	ReplicationUserName       string `json:"replicationUserName,omitempty"`
+	ReplicationUserSecretName string `json:"replicationUserSecretName,omitempty"`
 }
 
 type PatroniClusterStatus struct {
